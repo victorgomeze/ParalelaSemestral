@@ -20,52 +20,66 @@ using std::stringstream;
 
 using namespace std;
 
-void leer_archivo()// agregar lo que recibirá y donde se guardará
+struct Equipo{
+	string nombre;
+	string nombre_est;
+	float latitud;
+	float longitud; 
+};
+
+struct partido{
+	string visita;
+	string local;
+	string fecha;
+};
+
+void leer_archivo(Equipo V[])// agregar lo que recibirá y donde se guardará
 {
-   ifstream is("nombrearchivo");
+   ifstream is("equipos1ra.csv");
    
    if (is){
       string linea;
-      
+      int i=0;
       // Mientras se pueda leer una linea del archivo ...
-      while (getline(is, linea)){
+      while (getline(is, linea) && i<16){
          stringstream ss(linea);
          
           // Obtenemos el nombre y descartamos el ';'
-         string nombre_equipo;
-         getline(ss, nombre_equipo, ';');
-         cout << "Nombre: " << nombre_equipo << endl;
+         
+         getline(ss, V[i].nombre, ';');
+         cout << "Nombre: " << V[i].nombre << endl;
          
          // Obtenemos el nombre del estadio, este es el resto de la linea
-         string nombre_estadio;
-         getline(ss, nombre_estadio);
-         cout << "Apellido: " << nombre_estadio << endl;
+         
+         getline(ss, V[i].nombre_est,';');
+         cout << "Apellido: " << V[i].nombre_est << endl;
 
          // Obtenemos la coordenada 1
-         float coordenada1;
-         ss >> coordenada1;
-         cout << "No: " << coordenada1 << endl;
+         
+         ss >> V[i].latitud;
+         cout << "No: " << V[i].latitud << endl;
          
          // Descartamos el caracter ';' a continuacion del numero
          char ch;
          ss >> ch;
          
-         float coordenada2;
-         ss >> coordenada2;
-         cout << "No: " << coordenada2 << endl;
+        
+         ss >> V[i].longitud;
+         cout << "No: " << V[i].longitud << endl;
         
          
          cout << endl;
+	i++;
       }
       
       is.close();
    }
    
-   return 0;
+   
 }
-// This function converts decimal degrees to radians
+
 // Esta funcion convierte grados decimales a radianes
-double deg2rad(double deg) {
+double deg2rad(float deg) {
   return (deg * M_PI / 180)
   ;
 }
@@ -83,8 +97,8 @@ double rad2deg(double rad) {
  * @param lon2d Longitud del segundo punto en grados
  * @return la distancia entre 2 puntos en kilometros
  */
-double distanceEarth(double lat1d, double lon1d, double lat2d, double lon2d) {
-  double lat1r, lon1r, lat2r, lon2r, u, v;
+float distanceEarth(float lat1d, float lon1d, float lat2d, float lon2d) {
+  float lat1r, lon1r, lat2r, lon2r, u, v;
   lat1r = deg2rad(lat1d);
   lon1r = deg2rad(lon1d);
   lat2r = deg2rad(lat2d);
@@ -94,25 +108,43 @@ double distanceEarth(double lat1d, double lon1d, double lat2d, double lon2d) {
   return 2.0 * earthRadiusKm * asin(sqrt(u * u + cos(lat1r) * cos(lat2r) * v * v));
 }
 
-void ObtenerCoordenadas(float matriz[5000][3]){
-  FILE *fichero;
-  fichero = fopen("puntos","r");
-  if (fichero==NULL){
-    printf( "Error al abrir el fichero.\n" );
-    system("pause");
-    exit (EXIT_FAILURE);
-  }
-  int i = 0;
-  while (1){
-    if (feof(fichero))
-      break;
-    fscanf (fichero, "%f %f %f\n", &matriz[i][0], &matriz[i][1], &matriz[i][2]);
-    i++;
-   }
-   fclose(fichero);
+
+int main(int argc, char *argv[]){
+
+Equipo Equipos[16]; // Vector del tipo Equipo
+leer_archivo( Equipos); // funcion que lee el archivo y lo separa
+float MD[16][16]; //matriz de distancias
+for (int i=0; i<16;i++){
+ //cout << "Nombre equipo = "<< Equipos[i].nombre <<endl;
+// cout << "Nombre estadio = "<< Equipos[i].nombre_est <<endl;
+ //cout << "latitud = "<< Equipos[i].latitud <<endl;
+ //cout << "longitud = "<< Equipos[i].longitud <<endl;
+	for (int j=i; j<16 ; j++){
+		if ( i==j){
+			MD[i][j]=0;
+		}
+		else{
+			MD[i][j]= distanceEarth (Equipos[i].latitud, Equipos[i].longitud, Equipos[j].latitud, Equipos[j].longitud);
+			MD[j][i]= MD[i][j];
+		}
+	
+
 }
 
 
-int main(int argc, char *argv[]){
+
+
+
+
+
+}
+
+for (int i=0; i<16;i++){
+	for (int j=0; j<16 ; j++){
+		cout<<"Distancia entre el estadio "<<Equipos[i].nombre_est<<" y el estadio "<<Equipos[j].nombre_est<<" es = "<< MD[i][j]<< endl;
+}
+}
+
+
 
 }
