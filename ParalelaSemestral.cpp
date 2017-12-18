@@ -2,6 +2,16 @@
 #include <stdlib.h>
 #include <time.h>
 #include <iostream>
+using std::cin;
+using std::cout;
+using std::endl;
+#include <fstream>
+using std::ifstream;
+#include <string>
+using std::string;
+using std::getline;
+#include <sstream>
+using std::stringstream;
 #include <math.h>
 #include <ctime>
 #include <math.h>
@@ -10,10 +20,54 @@
 
 using namespace std;
 
+void leer_archivo()// agregar lo que recibirá y donde se guardará
+{
+   ifstream is("nombrearchivo");
+   
+   if (is){
+      string linea;
+      
+      // Mientras se pueda leer una linea del archivo ...
+      while (getline(is, linea)){
+         stringstream ss(linea);
+         
+          // Obtenemos el nombre y descartamos el ';'
+         string nombre_equipo;
+         getline(ss, nombre_equipo, ';');
+         cout << "Nombre: " << nombre_equipo << endl;
+         
+         // Obtenemos el nombre del estadio, este es el resto de la linea
+         string nombre_estadio;
+         getline(ss, nombre_estadio);
+         cout << "Apellido: " << nombre_estadio << endl;
+
+         // Obtenemos la coordenada 1
+         float coordenada1;
+         ss >> coordenada1;
+         cout << "No: " << coordenada1 << endl;
+         
+         // Descartamos el caracter ';' a continuacion del numero
+         char ch;
+         ss >> ch;
+         
+         float coordenada2;
+         ss >> coordenada2;
+         cout << "No: " << coordenada2 << endl;
+        
+         
+         cout << endl;
+      }
+      
+      is.close();
+   }
+   
+   return 0;
+}
 // This function converts decimal degrees to radians
 // Esta funcion convierte grados decimales a radianes
 double deg2rad(double deg) {
-  return (deg * M_PI / 180);
+  return (deg * M_PI / 180)
+  ;
 }
 
 // esta funcion convierte radianes a grados decimales
