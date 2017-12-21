@@ -1,0 +1,16 @@
+Colo-Colo;Estadio Monumental;-33.506528;-70.605938
+Universidad de Chile;Estadio Nacional;-33.464619;-70.610676
+Universidad Catolica;Estadio San Carlos de Apoquindo;-33.400000;-70.500655
+Union Española;Estadio Santa Laura;-33.404528;-70.659016
+Audax Italiano;Bicentenario La Florida;-33.546984;-70.586663
+Curicó Unido;La Granja;-34.974356;-71.230707
+Deportes Antofagasta;Bicentenario Calvo y Bascuñán;-23.670139;-70.404583
+Deportes Iquique;Municipal de Cavancha;-20.235111;-70.145611
+Deportes Temuco;Bicentenario Germán Becker;-38.742778;-72.619722
+Everton;Sausalito;-33.014397;-71.535233
+Huachipato;Huachipato-CAP Acero;-36.755556;-73.107222
+O'Higgins;El Teniente;-34.188764;-70.737719
+Palestino;Municipal de La Cisterna;-33.520833;-70.672778
+San Luis;Lucio Fariña Fernández;-32.8876;-71.252
+Santiago Wanderers;Elías Figueroa Brander;-33.052278;-71.64
+Universidad de Concepción;Estadio Municipal Concepcion;-36.815086;-73.023667
