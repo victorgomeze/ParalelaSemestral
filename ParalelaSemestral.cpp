@@ -306,7 +306,7 @@ void kernel()
       printf("\n");
       }
       if(indice.i==-1){
-        //cout<<endl<<endl<<endl<<"FALLA BLOQUEO"<<endl<<"*********************************************************************************************"<<endl<<endl<<endl;
+        //cout<<endl<<endl<<endl<<"FALLA BLOQUEO"<<endl<<"**************************************"<<endl<<endl<<endl;
         copiarMatriz(MDB,MDC);
         indice=minimoPorFila();
         bloqueado=true;
@@ -333,6 +333,9 @@ int main(int argc, char *argv[])
   hab_Equipos();
   num_est = leer_equipo(argv[1]);
 
+	//MPI_Init(&argc,&argv);
+  //  MPI_Comm_size( MPI_COMM_WORLD, &tamano ); // devuelve el numero de procesos en este COMM_WORLD
+  //  MPI_Comm_rank( MPI_COMM_WORLD, &rank );     // identificate por el rank asignado  
 
   //asignacion de memoria a la matriz dinamica distancias
   distancias = new double*[num_est];
