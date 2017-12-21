@@ -7,25 +7,27 @@
 #include <vector>
 #include <xlsxwriter.h>
 #include <mpi.h>
+#include <ctime>
 #define INFINITO 99999
 
 using namespace std;
 typedef char cadena[80];
 char *ptr;
+unsigned TINICIO, TFINAL;
 
 
 int hi;
 int jota;
 
-double distancias_copia[16][16];
-double distancias_bloqueo[16][16];
-int ubicacion[16];
+double MDC[16][16];
+double MDB[16][16];
+int ubi[16];
 
 
 struct punto
 {
-  float latitud;
-  float longitud;
+  float lat;
+  float lon;
 };
 
 struct equipo{
@@ -56,12 +58,12 @@ bool habilitado[16];
 
 double **distancias;
 
-void agrega_partido(string eq_local, string eq_visita, int fecha_partido)
+void agrega_partido(string equipo_local, string equipo_visita, int fecha_partido)
 {
   partido p;
 
-  p.local = eq_local;
-  p.visita = eq_visita;
+  p.local = equipo_local;
+  p.visita = equipo_visita;
   p.fecha = fecha_partido;
 
   partidos.push_back(p);
@@ -88,7 +90,7 @@ double distancia_long_lat(float lat1, float long1, float lat2, float long2)//los
   return radio_tierra*acos(((sin(lat1))*(sin(lat2)))+(((cos(lat1))*(cos(lat2))*(cos(long2 - long1)))));
 }
 
-void llena_matriz_dis() //FUNCION QUE LLENA 2 MATRICES IGUALES CON LAS DISTANCIAS
+void llenado_matriz_distancia() //FUNCION QUE LLENA 2 MATRICES IGUALES CON LAS DISTANCIAS
 {
   for(int i=0; i<numero_estadios; i++)
   {
@@ -96,13 +98,13 @@ void llena_matriz_dis() //FUNCION QUE LLENA 2 MATRICES IGUALES CON LAS DISTANCIA
     {
       if(i==j){
         distancias[i][j] = INFINITO;
-        distancias_copia[i][j] = INFINITO;
+        MDC[i][j] = INFINITO;
 
       }
 
       else{
-      distancias[i][j] = distancia_long_lat(equipos[i].coordenada.latitud, equipos[i].coordenada.longitud, equipos[j].coordenada.latitud, equipos[j].coordenada.longitud);
-      distancias_copia[i][j] = distancia_long_lat(equipos[i].coordenada.latitud, equipos[i].coordenada.longitud, equipos[j].coordenada.latitud, equipos[j].coordenada.longitud);
+      distancias[i][j] = distancia_long_lat(equipos[i].coordenada.lat, equipos[i].coordenada.lon, equipos[j].coordenada.lat, equipos[j].coordenada.lon);
+      MDC[i][j] = distancia_long_lat(equipos[i].coordenada.lat, equipos[i].coordenada.lon, equipos[j].coordenada.lat, equipos[j].coordenada.lon);
        }
 
 
@@ -111,21 +113,21 @@ void llena_matriz_dis() //FUNCION QUE LLENA 2 MATRICES IGUALES CON LAS DISTANCIA
 }
 
 
-void cambia_filas() // FUNCION QUE COPIA FILAS DESDE MATRIZ ORGINAL SIN CAMBIAR LA DIAGONAL NI LOS -1
+void cambio_filas() // FUNCION QUE COPIA FILAS DESDE MATRIZ ORGINAL SIN CAMBIAR LA DIAGONAL NI LOS -1
 {
   int i=0;
   for(int i=0; i<numero_estadios; i++)
   {
     for(int j=0; j<numero_estadios; j++)
     {
-      if(i!=ubicacion[i])// SI la POSICION EL NUMERO(J) CONTENIDO EN EL VECTOR ES IMPAR(VISITA) ENTRA
+      if(i!=ubi[i])// SI la POSICION EL NUMERO(J) CONTENIDO EN EL VECTOR ES IMPAR(VISITA) ENTRA
       {
         if(i==j){
-          distancias_copia[i][j] = INFINITO;
+          MDC[i][j] = INFINITO;
         }
-        if(distancias_copia[i][j]!=INFINITO)
+        if(MDC[i][j]!=INFINITO)
         {
-          distancias_copia[i][j] = distancias[ubicacion[i]][j];
+          MDC[i][j] = distancias[ubi[i]][j];
         }
       }
      }
@@ -135,7 +137,7 @@ void cambia_filas() // FUNCION QUE COPIA FILAS DESDE MATRIZ ORGINAL SIN CAMBIAR 
   int leer_equipo(cadena archivo){
     ifstream fs;
     fs.open(archivo);
-    if (!fs) cout<<"El fichero no existe o no se puede leer.\n";
+    if (!fs) cout<<"El fichero no existe o no se logro leer.\n";
     else {
     int cont=0;
     cadena palabra;
@@ -162,13 +164,13 @@ void cambia_filas() // FUNCION QUE COPIA FILAS DESDE MATRIZ ORGINAL SIN CAMBIAR 
         }
         if (cont2==2){
         //COLUMNA 3 -  COORDENADA X
-        aux.coordenada.latitud = atof(ptr);
+        aux.coordenada.lat = atof(ptr);
         //cout <<"Dato separado:"<< ptr << endl;
 
         }
         if (cont2==3){
         //COLUMNA 4 - COORDENADA Y
-        aux.coordenada.longitud = atof(ptr);
+        aux.coordenada.lon = atof(ptr);
         //cout <<"Dato separado:"<< ptr << endl;
         equipos.insert(equipos.begin()+cont,aux);
         cont++;
@@ -182,13 +184,13 @@ void cambia_filas() // FUNCION QUE COPIA FILAS DESDE MATRIZ ORGINAL SIN CAMBIAR 
 }
 
 bool crearExcel(cadena arg){
-  cout<<"Comenzando a crear Excel de campeonato"<<endl;
+  cout<<"Comenzando a crear Excel del fixture del Campeonato"<<endl;
   string ruta;
   //crea ruta para guardar el archivo
   if (arg!=NULL)
-    ruta = strcat(arg,"/prueba.xlsx");
+    ruta = strcat(arg,"/FixtureCampeonato.xlsx");
   else
-    ruta = "Partidos Campeonato Nacional.xlsx";
+    ruta = "Fixture Campeonato Nacional.xlsx";
 
   lxw_workbook  *workbook  = workbook_new(ruta.c_str()); //Se crea el fichero excel
   lxw_worksheet *worksheet = workbook_add_worksheet(workbook, NULL); //Se agrega una hoja al fichero
@@ -212,7 +214,7 @@ bool crearExcel(cadena arg){
   //nombres de columnas
   worksheet_write_string(worksheet, 0, 0, "Equipo Local", bold_local);
   worksheet_write_string(worksheet, 0, 1, "Fecha", bold_fecha);
-  worksheet_write_string(worksheet, 0, 2, "Visita", bold);
+  worksheet_write_string(worksheet, 0, 2, "Equipo Visita", bold);
 
   for(int i=0; i<partidos.size(); i++)
   {
@@ -226,7 +228,7 @@ bool crearExcel(cadena arg){
       worksheet_write_string(worksheet, cont, 2, partidos[i].visita.c_str(), NULL);
       cont++;
   }
-  cout<<"Excel creado."<<endl;
+  cout<<"Excel ha sido creado correctamente."<<endl;
   return workbook_close(workbook);
 }
 
@@ -241,12 +243,12 @@ indices minimoPorFila(){
     {
       if(habilitado[i] && habilitado[j])
       {
-        if(distancias_copia[i][j]!=INFINITO)
+        if(MDC[i][j]!=INFINITO)
         {
           indice.i = i;
           indice.j = j;
 
-          distancias_copia[indice.i][indice.j]=INFINITO;
+          MDC[indice.i][indice.j]=INFINITO;
           habilitado[indice.i]=false;
           habilitado[indice.j]=false;
   
@@ -256,7 +258,7 @@ indices minimoPorFila(){
     }
   }
   
-  distancias_copia[indice.i][indice.j]=INFINITO;
+  MDC[indice.i][indice.j]=INFINITO;
   habilitado[indice.i]=false;
   habilitado[indice.j]=false;
   
@@ -267,7 +269,7 @@ void habilitarEquipos(){
   for(int i=0;i<numero_estadios;i++) habilitado[i]=true;
 }
 
-indices minimoPorMatriz(){
+indices minimopor_matriz(){
   int menor=INFINITO;
   indices indice;
   indice.i=-1;
@@ -275,8 +277,8 @@ indices minimoPorMatriz(){
   for(int i=0;i<numero_estadios;i++){
     for(int j=0;j<numero_estadios;j++){
       if(habilitado[i] && habilitado[j]){
-        if(distancias_copia[i][j]<=menor){
-          menor=distancias_copia[i][j];
+        if(MDC[i][j]<=menor){
+          menor=MDC[i][j];
           indice.i=i;
           indice.j=j;
         }
@@ -287,7 +289,7 @@ indices minimoPorMatriz(){
   {
     habilitado[indice.i]=false;
     habilitado[indice.j]=false;
-    distancias_copia[indice.i][indice.j]=INFINITO;
+    MDC[indice.i][indice.j]=INFINITO;
   }
   return indice;
 }
@@ -321,9 +323,9 @@ void kernel()
     habilitarEquipos();
     for(int i=0; i<numero_estadios;i++)
     {
-      ubicacion[i]=i;
+      ubi[i]=i;
     }
-    copiarMatriz(distancias_copia,distancias_bloqueo);
+    copiarMatriz(MDC,MDB);
     
     INICIO:
     for(int y=0;y<(numero_estadios/2);y++) // PARTIDOS POR FECHA
@@ -335,7 +337,7 @@ void kernel()
       }
         if(bloqueado == 0)
         { 
-          indice=minimoPorMatriz();
+          indice=minimopor_matriz();
         }
 
         else 
@@ -346,7 +348,7 @@ void kernel()
       if(distancias[indice.i][indice.j]==INFINITO)
       {
         
-        copiarMatriz(distancias_bloqueo,distancias_copia);
+        copiarMatriz(MDB,MDC);
 
         //indice=minimoPorFila();
         bloqueado++;
@@ -357,22 +359,23 @@ void kernel()
         }
       }
 
-      ubicacion[indice.i]=indice.j;
-      distancias_copia[indice.i][indice.j]=INFINITO;
+      ubi[indice.i]=indice.j;
+      MDC[indice.i][indice.j]=INFINITO;
       
       agrega_partido(equipos[indice.i].nombre, equipos[indice.j].nombre, k+1);
     }
     
-    cambia_filas();
+    cambio_filas();
     
   }
 }
 
 int main(int argc, char *argv[])
 {
+TINICIO=clock();
   switch(argc){ //Revisa la cantidad de argumentos ingresados al ejecutar el programa
     case 1:
-      cout<<"No se ha indicado fichero de equipos."<<endl;
+      cout<<"No se ha indicado fichero con los equipos."<<endl;
       break;
     case 2:
       cout<<"No se ha indicado ruta de salida para el fichero Excel."<<endl;
@@ -393,7 +396,7 @@ int main(int argc, char *argv[])
 
                
         //Calcula y guarda las distancias en la matriz de distancia
-        llena_matriz_dis();
+        llenado_matriz_distancia();
 
         //crea el fixture
         kernel();
@@ -415,5 +418,8 @@ int main(int argc, char *argv[])
       cout<<"Demasiados argumentos."<<endl;
       break;
   }
+ TFINAL=clock();
+ double time = (double(TFINAL-TINICIO)/CLOCKS_PER_SEC);
+ printf("El tiempo de ejecucion es: %f\n" ,time);
   return 0;
 }
